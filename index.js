@@ -88,14 +88,14 @@ function selectGameQuestions() {
 
     let unitsAvailableCount = 0;
     for (const unitNum in questionsByUnit) {
-        if (questionsByUnit[unitNum].length >= MIN_QUESTIONS_PER_UNIT_TO_START) {
+        if (questionsByUnit[unitNum] && questionsByUnit[unitNum].length >= MIN_QUESTIONS_PER_UNIT_TO_START) {
             unitsAvailableCount++;
         } else {
-            console.warn(`La unidad ${unitNum} tiene ${questionsByUnit[unitNum].length} preguntas, menos que el mínimo de ${MIN_QUESTIONS_PER_UNIT_TO_START} requerido para considerar la unidad viable para el inicio.`);
+            console.warn(`La unidad ${unitNum} tiene ${questionsByUnit[unitNum] ? questionsByUnit[unitNum].length : 0} preguntas, menos que el mínimo de ${MIN_QUESTIONS_PER_UNIT_TO_START} requerido para considerar la unidad viable para el inicio.`);
         }
     }
     
-    const totalUnitsWithEnoughQuestions = Object.keys(questionsByUnit).filter(unitNum => questionsByUnit[unitNum].length >= MIN_QUESTIONS_PER_UNIT_TO_START).length;
+    const totalUnitsWithEnoughQuestions = Object.keys(questionsByUnit).filter(unitNum => questionsByUnit[unitNum] && questionsByUnit[unitNum].length >= MIN_QUESTIONS_PER_UNIT_TO_START).length;
     const totalExpectedUnits = 8; 
 
     if (allQuestions.length < MIN_TOTAL_QUESTIONS_TO_START || totalUnitsWithEnoughQuestions < totalExpectedUnits ) {
@@ -115,24 +115,20 @@ function selectGameQuestions() {
     let selectedQuestions = [];
     let tempLastGameQuestionIds = [...lastGameQuestionIds]; 
 
-    const unitNumbers = Object.keys(questionsByUnit).map(Number);
+    const unitNumbers = Object.keys(questionsByUnit).map(Number).filter(num => questionsByUnit[num] && questionsByUnit[num].length > 0); // Filtrar unidades sin preguntas
     
     for (const unitNum of unitNumbers) {
         let unitSpecificQuestions = questionsByUnit[unitNum];
-        if (!unitSpecificQuestions || unitSpecificQuestions.length === 0) { // Comprobación adicional
-            console.warn(`No hay preguntas para la unidad ${unitNum}.`);
-            continue;
-        }
+        // No es necesario el 'if (!unitSpecificQuestions || unitSpecificQuestions.length === 0)' aquí debido al filtro anterior
         
         if (unitSpecificQuestions.length < MIN_QUESTIONS_PER_UNIT) {
-            console.warn(`La unidad ${unitNum} tiene menos de ${MIN_QUESTIONS_PER_UNIT} preguntas. Se usarán todas las disponibles.`);
-            // Añadir solo las que no estén ya en selectedQuestions para evitar duplicados si una pregunta pertenece a múltiples "unidades" lógicas (aunque no debería pasar con tu estructura)
+            console.warn(`La unidad ${unitNum} tiene menos de ${MIN_QUESTIONS_PER_UNIT} preguntas. Se usarán todas las disponibles de esta unidad.`);
             unitSpecificQuestions.forEach(q => {
                 if (!selectedQuestions.find(sq => sq.id === q.id)) {
                     selectedQuestions.push(q);
                 }
             });
-            continue;
+            continue; 
         }
 
         let questionsForThisUnit = [];
@@ -147,7 +143,8 @@ function selectGameQuestions() {
             shuffleArray(availableOldInUnit);
             questionsForThisUnit = questionsForThisUnit.concat(availableOldInUnit.slice(0, remainingNeededInUnit));
         }
-         questionsForThisUnit.forEach(q => { // Evitar duplicados al añadir
+        
+        questionsForThisUnit.forEach(q => { 
             if (!selectedQuestions.find(sq => sq.id === q.id)) {
                 selectedQuestions.push(q);
             }
@@ -163,17 +160,17 @@ function selectGameQuestions() {
         shuffleArray(newRemainingPool);
         
         const takeFromNew = Math.min(questionsToComplete, newRemainingPool.length);
-        newRemainingPool.slice(0, takeFromNew).forEach(q => { // Evitar duplicados
+        newRemainingPool.slice(0, takeFromNew).forEach(q => { 
              if (!selectedQuestions.find(sq => sq.id === q.id)) {
                 selectedQuestions.push(q);
             }
         });
-        questionsToComplete = QUESTIONS_PER_GAME - selectedQuestions.length; // Recalcular
+        questionsToComplete = QUESTIONS_PER_GAME - selectedQuestions.length;
 
         if (questionsToComplete > 0) {
-            let oldRemainingPool = remainingPool.filter(q => tempLastGameQuestionIds.includes(q.id) && !selectedQuestions.find(sq => sq.id === q.id));
+            let oldRemainingPool = remainingPool.filter(q => tempLastGameQuestionIds.includes(q.id) && !selectedQuestions.find(sq => sq.id === q.id)); // Asegurar que no se seleccionen de nuevo las ya seleccionadas
             shuffleArray(oldRemainingPool);
-             oldRemainingPool.slice(0, questionsToComplete).forEach(q => { // Evitar duplicados
+             oldRemainingPool.slice(0, questionsToComplete).forEach(q => { 
                  if (!selectedQuestions.find(sq => sq.id === q.id)) {
                     selectedQuestions.push(q);
                 }
@@ -205,13 +202,13 @@ function selectGameQuestions() {
 // --- LÓGICA DE VISUALIZACIÓN Y JUEGO ---
 
 function displayQuestion() {
-    if (!gameScreen || currentQuestionIndex >= currentQuestions.length) { // Añadida comprobación de gameScreen
+    if (!gameScreen || currentQuestionIndex >= currentQuestions.length) { 
         endGame();
         return;
     }
 
     const question = currentQuestions[currentQuestionIndex];
-    if (!questionTextElem || !questionCounter || !optionsContainer || !feedbackContainer || !nextQuestionBtn) { // Comprobaciones de elementos
+    if (!questionTextElem || !questionCounter || !optionsContainer || !feedbackContainer || !nextQuestionBtn) { 
         console.error("Faltan elementos del DOM para mostrar la pregunta.");
         return;
     }
@@ -222,9 +219,10 @@ function displayQuestion() {
     optionsContainer.innerHTML = ''; 
     question.options.forEach((option, index) => {
         const button = document.createElement('button');
-        button.className = 'option-btn bg-white p-4 rounded-lg shadow-md text-slate-700 hover:bg-slate-100 focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all duration-150 ease-in-out w-full text-left border border-slate-300 hover:border-sky-400';
+        // Se aplica solo la clase base. El CSS se encargará del resto.
+        button.classList.add('option-btn'); 
         button.textContent = option;
-        button.dataset.index = index; // Asegurar que el índice se guarda como string
+        button.dataset.index = String(index); // Asegurar que el índice se guarda como string
         button.addEventListener('click', handleAnswer);
         optionsContainer.appendChild(button);
     });
@@ -234,22 +232,21 @@ function displayQuestion() {
 }
 
 function handleAnswer(event) {
-    const selectedOptionButton = event.target.closest('.option-btn'); // Asegurar que se obtiene el botón
+    const selectedOptionButton = event.target.closest('.option-btn'); 
     if (!selectedOptionButton) return;
 
     const selectedAnswerIndex = parseInt(selectedOptionButton.dataset.index);
     const question = currentQuestions[currentQuestionIndex];
 
-    if (!question || typeof question.correctAnswerIndex === 'undefined') { // Comprobación de pregunta
+    if (!question || typeof question.correctAnswerIndex === 'undefined') { 
         console.error("Error: Pregunta actual o respuesta correcta no definida.", question);
         return;
     }
 
-    // Deshabilitar todos los botones de opción
     Array.from(optionsContainer.children).forEach(btn => {
         btn.disabled = true;
-        // Quitar clases de hover para que no interfieran con los colores de feedback
-        btn.classList.remove('hover:bg-slate-100', 'hover:border-sky-400');
+        // Quitar clases de hover base para que no interfieran con los colores de feedback
+        btn.classList.remove('hover:bg-slate-100', 'hover:border-sky-400'); 
         btn.classList.add('disabled'); 
     });
 
@@ -257,28 +254,27 @@ function handleAnswer(event) {
     
     if (selectedAnswerIndex === question.correctAnswerIndex) {
         score++;
-        selectedOptionButton.classList.remove('bg-white', 'border-slate-300', 'text-slate-700'); // Quitar clases base
-        selectedOptionButton.classList.add('correct'); // Aplicar clase de CSS para verde
-        feedbackTextElem.textContent = "¡Respuesta Correcta!";
-        feedbackContainer.classList.add('correct');
+        selectedOptionButton.classList.add('correct'); 
+        if (feedbackTextElem) feedbackTextElem.textContent = "¡Respuesta Correcta!";
+        if (feedbackContainer) feedbackContainer.classList.add('correct');
     } else {
         mistakes++;
-        selectedOptionButton.classList.remove('bg-white', 'border-slate-300', 'text-slate-700'); // Quitar clases base
-        selectedOptionButton.classList.add('incorrect'); // Aplicar clase de CSS para rojo
+        selectedOptionButton.classList.add('incorrect'); 
         
         const correctButton = optionsContainer.children[question.correctAnswerIndex];
         if (correctButton) {
-            correctButton.classList.remove('bg-white', 'border-slate-300', 'text-slate-700'); // Quitar clases base
-            correctButton.classList.add('correct'); // Aplicar clase de CSS para verde
+            correctButton.classList.add('correct'); 
         }
-        feedbackTextElem.textContent = "Respuesta Incorrecta.";
-        feedbackContainer.classList.add('incorrect');
+        if (feedbackTextElem) feedbackTextElem.textContent = "Respuesta Incorrecta.";
+        if (feedbackContainer) feedbackContainer.classList.add('incorrect');
     }
     
-    explanationTextElem.textContent = question.explanation;
-    scoreCounter.textContent = `Aciertos: ${score} | Fallos: ${mistakes}`;
-    nextQuestionBtn.classList.remove('hidden');
-    nextQuestionBtn.focus(); 
+    if (explanationTextElem) explanationTextElem.textContent = question.explanation;
+    if (scoreCounter) scoreCounter.textContent = `Aciertos: ${score} | Fallos: ${mistakes}`;
+    if (nextQuestionBtn) {
+        nextQuestionBtn.classList.remove('hidden');
+        nextQuestionBtn.focus(); 
+    }
 }
 
 function showNextQuestion() {
@@ -304,11 +300,11 @@ function startGame() {
     score = 0;
     mistakes = 0;
     
-    if (!scoreCounter || !startScreen || !endScreen || !gameScreen) { // Comprobación de elementos
+    if (!scoreCounter || !startScreen || !endScreen || !gameScreen) { 
         console.error("Faltan elementos del DOM para iniciar el juego.");
         return;
     }
-    scoreCounter.textContent = `Aciertos: 0 | Fallos: 0`;
+    scoreCounter.textContent = `Aciertos: ${score} | Fallos: ${mistakes}`;
     startScreen.classList.add('hidden');
     endScreen.classList.add('hidden');
     gameScreen.classList.remove('hidden');
@@ -317,7 +313,7 @@ function startGame() {
 }
 
 function endGame() {
-    if (!gameScreen || !endScreen || !document.getElementById('final-score') || !document.getElementById('final-mistakes')) { // Comprobación
+    if (!gameScreen || !endScreen || !document.getElementById('final-score') || !document.getElementById('final-mistakes')) { 
         console.error("Faltan elementos del DOM para finalizar el juego.");
         return;
     }
