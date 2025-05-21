@@ -21,21 +21,29 @@ body {
 
 .option-btn.correct {
     @apply bg-green-500 hover:bg-green-600 text-white border-green-600;
-    /* Evitar que el hover cambie el color de fondo después de seleccionar si es necesario,
-       pero el hover:bg-green-600 ya lo oscurece un poco, lo cual está bien. */
 }
 .option-btn.incorrect {
     @apply bg-red-500 hover:bg-red-600 text-white border-red-600;
 }
 
 .option-btn.disabled {
-    @apply opacity-70 cursor-not-allowed hover:bg-white; /* Evitar cambio de hover cuando está deshabilitado y es blanco */
+    @apply opacity-70 cursor-not-allowed;
+    /* Si el botón es solo disabled y no correct/incorrect, 
+       queremos que el hover:bg-white (o el color base) se mantenga sin cambios por hover.
+       Las clases base de JS ('hover:bg-slate-100') podrían interferir,
+       así que podemos ser más específicos aquí si es necesario, o manejarlo en JS.
+       Por ahora, Tailwind normalmente maneja bien la especificidad.
+       Si el botón base es 'bg-white', el hover:bg-white aquí no hace mucho,
+       pero si el botón base tuviera otro color, esto sería más relevante.
+    */
 }
 .option-btn.disabled.correct { /* Mantener color si está deshabilitado pero fue correcto */
-    @apply bg-green-500 opacity-80 hover:bg-green-500;
+    @apply bg-green-500 text-white border-green-600 opacity-80 hover:bg-green-500;
+    /* Aseguramos que el hover no lo cambie a un color no deseado */
 }
 .option-btn.disabled.incorrect { /* Mantener color si está deshabilitado pero fue incorrecto */
-     @apply bg-red-500 opacity-80 hover:bg-red-500;
+     @apply bg-red-500 text-white border-red-600 opacity-80 hover:bg-red-500;
+    /* Aseguramos que el hover no lo cambie a un color no deseado */
 }
 
 
