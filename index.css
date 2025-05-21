@@ -15,12 +15,23 @@ body {
 }
 
 .option-btn.correct {
-    @apply bg-green-500 !important text-white !important border-green-600 !important; /* Estilo principal para correcto */
-    @apply hover:bg-green-600 !important hover:border-green-700 !important; /* Hover específico para correcto */
+    background-color: #22c55e !important; /* green-500 */
+    color: #ffffff !important; /* white */
+    border-color: #16a34a !important; /* green-600 */
 }
+.option-btn.correct:hover {
+    background-color: #16a34a !important; /* green-600 */
+    border-color: #15803d !important; /* green-700 */
+}
+
 .option-btn.incorrect {
-    @apply bg-red-500 !important text-white !important border-red-600 !important; /* Estilo principal para incorrecto */
-    @apply hover:bg-red-600 !important hover:border-red-700 !important; /* Hover específico para incorrecto */
+    background-color: #ef4444 !important; /* red-500 */
+    color: #ffffff !important; /* white */
+    border-color: #dc2626 !important; /* red-600 */
+}
+.option-btn.incorrect:hover {
+    background-color: #dc2626 !important; /* red-600 */
+    border-color: #b91c1c !important; /* red-700 */
 }
 
 .option-btn.disabled {
@@ -29,19 +40,33 @@ body {
 
 /* Cuando un botón está deshabilitado Y es correcto */
 .option-btn.disabled.correct {
-    @apply bg-green-500 !important text-white !important border-green-600 !important opacity-80 !important; /* Mantiene el color verde */
-    @apply hover:bg-green-500 !important hover:border-green-600 !important; /* Sin cambio en hover */
+    background-color: #22c55e !important; /* green-500 */
+    color: #ffffff !important; /* white */
+    border-color: #16a34a !important; /* green-600 */
+    opacity: 0.8 !important;
+}
+.option-btn.disabled.correct:hover {
+    background-color: #22c55e !important; /* Mantiene el color verde sin cambio por hover */
+    border-color: #16a34a !important;
 }
 
 /* Cuando un botón está deshabilitado Y es incorrecto */
 .option-btn.disabled.incorrect {
-     @apply bg-red-500 !important text-white !important border-red-600 !important opacity-80 !important; /* Mantiene el color rojo */
-    @apply hover:bg-red-500 !important hover:border-red-600 !important; /* Sin cambio en hover */
+    background-color: #ef4444 !important; /* red-500 */
+    color: #ffffff !important; /* white */
+    border-color: #dc2626 !important; /* red-600 */
+    opacity: 0.8 !important;
+}
+.option-btn.disabled.incorrect:hover {
+    background-color: #ef4444 !important; /* Mantiene el color rojo sin cambio por hover */
+    border-color: #dc2626 !important;
 }
 
 /* Cuando un botón está deshabilitado PERO NO es ni correcto ni incorrecto (los otros no seleccionados) */
 .option-btn.disabled:not(.correct):not(.incorrect) {
-    @apply hover:bg-white hover:border-slate-300; /* Mantiene el estilo base en hover */
+    /* Mantiene el estilo base definido en .option-btn y su :hover */
+    /* No es necesario anular el hover:bg-slate-100 aquí si .option-btn ya lo tiene */
+     @apply hover:bg-white hover:border-slate-300; /* Asegura que el hover no deseado no se aplique */
 }
 
 
