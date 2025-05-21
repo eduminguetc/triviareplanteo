@@ -20,13 +20,13 @@ let currentQuestions = [];
 let currentQuestionIndex = 0;
 let score = 0;
 let mistakes = 0;
-const QUESTIONS_PER_GAME = 40; // Cada partida constará de 40 preguntas
-const MIN_QUESTIONS_PER_UNIT = 5; // Mínimo de 5 preguntas de cada unidad por partida
-let lastGameQuestionIds = []; // Almacena IDs de preguntas de la partida anterior
+const QUESTIONS_PER_GAME = 40; 
+const MIN_QUESTIONS_PER_UNIT = 5; 
+let lastGameQuestionIds = []; 
 
 // --- CONSTANTES ---
-const MIN_TOTAL_QUESTIONS_TO_START = 40; // Mínimo total para que el juego sea viable (5 preg * 8 unidades)
-const MIN_QUESTIONS_PER_UNIT_TO_START = 5; // Mínimo por unidad para que el juego sea viable
+const MIN_TOTAL_QUESTIONS_TO_START = 40; 
+const MIN_QUESTIONS_PER_UNIT_TO_START = 5; 
 
 // --- ASIGNACIÓN DE ELEMENTOS DEL DOM ---
 function assignDOMelements() {
@@ -52,9 +52,8 @@ function assignDOMelements() {
 // --- LÓGICA DE CARGA Y SELECCIÓN DE PREGUNTAS ---
 
 function loadAllQuestions() {
-    allQuestions = []; // Limpiar antes de cargar
+    allQuestions = []; 
     
-    // Concatenar todas las preguntas importadas
     if (typeof unit1Questions !== 'undefined') allQuestions = allQuestions.concat(unit1Questions);
     if (typeof unit2Questions !== 'undefined') allQuestions = allQuestions.concat(unit2Questions);
     if (typeof unit3Questions !== 'undefined') allQuestions = allQuestions.concat(unit3Questions);
@@ -73,7 +72,7 @@ function loadAllQuestions() {
 
 function selectGameQuestions() {
     if (allQuestions.length === 0) {
-        errorMessageStart.textContent = "Error: No hay preguntas cargadas en el banco. No se puede iniciar el juego.";
+        if(errorMessageStart) errorMessageStart.textContent = "Error: No hay preguntas cargadas en el banco. No se puede iniciar el juego.";
         if(startGameBtn) startGameBtn.disabled = true;
         console.error("Banco de preguntas vacío.");
         return [];
@@ -87,7 +86,6 @@ function selectGameQuestions() {
         questionsByUnit[q.unit].push(q);
     });
 
-    // Validar si hay suficientes preguntas en total y por unidad para que el juego sea viable
     let unitsAvailableCount = 0;
     for (const unitNum in questionsByUnit) {
         if (questionsByUnit[unitNum].length >= MIN_QUESTIONS_PER_UNIT_TO_START) {
@@ -98,7 +96,7 @@ function selectGameQuestions() {
     }
     
     const totalUnitsWithEnoughQuestions = Object.keys(questionsByUnit).filter(unitNum => questionsByUnit[unitNum].length >= MIN_QUESTIONS_PER_UNIT_TO_START).length;
-    const totalExpectedUnits = 8; // Asumiendo que esperas 8 unidades
+    const totalExpectedUnits = 8; 
 
     if (allQuestions.length < MIN_TOTAL_QUESTIONS_TO_START || totalUnitsWithEnoughQuestions < totalExpectedUnits ) {
          let errorMsg = `Error: No hay suficientes preguntas para iniciar una partida según los criterios.`;
@@ -108,7 +106,7 @@ function selectGameQuestions() {
          if (totalUnitsWithEnoughQuestions < totalExpectedUnits) {
             errorMsg += ` Además, cada una de las ${totalExpectedUnits} unidades temáticas debe tener al menos ${MIN_QUESTIONS_PER_UNIT_TO_START} preguntas (actualmente ${totalUnitsWithEnoughQuestions} unidades cumplen este requisito).`;
          }
-        errorMessageStart.textContent = errorMsg;
+        if(errorMessageStart) errorMessageStart.textContent = errorMsg;
         if(startGameBtn) startGameBtn.disabled = true;
         console.error("Insuficientes preguntas totales o por unidad para iniciar.");
         return [];
@@ -117,15 +115,23 @@ function selectGameQuestions() {
     let selectedQuestions = [];
     let tempLastGameQuestionIds = [...lastGameQuestionIds]; 
 
-    // 1. Garantizar representación de unidades (al menos MIN_QUESTIONS_PER_UNIT de cada unidad)
     const unitNumbers = Object.keys(questionsByUnit).map(Number);
     
     for (const unitNum of unitNumbers) {
         let unitSpecificQuestions = questionsByUnit[unitNum];
+        if (!unitSpecificQuestions || unitSpecificQuestions.length === 0) { // Comprobación adicional
+            console.warn(`No hay preguntas para la unidad ${unitNum}.`);
+            continue;
+        }
+        
         if (unitSpecificQuestions.length < MIN_QUESTIONS_PER_UNIT) {
-            // Esto no debería pasar si la validación anterior de MIN_QUESTIONS_PER_UNIT_TO_START funcionó para todas las unidades
             console.warn(`La unidad ${unitNum} tiene menos de ${MIN_QUESTIONS_PER_UNIT} preguntas. Se usarán todas las disponibles.`);
-            selectedQuestions = selectedQuestions.concat(unitSpecificQuestions.filter(q => !selectedQuestions.find(sq => sq.id === q.id)));
+            // Añadir solo las que no estén ya en selectedQuestions para evitar duplicados si una pregunta pertenece a múltiples "unidades" lógicas (aunque no debería pasar con tu estructura)
+            unitSpecificQuestions.forEach(q => {
+                if (!selectedQuestions.find(sq => sq.id === q.id)) {
+                    selectedQuestions.push(q);
+                }
+            });
             continue;
         }
 
@@ -135,42 +141,48 @@ function selectGameQuestions() {
         shuffleArray(availableNewInUnit);
         questionsForThisUnit = availableNewInUnit.slice(0, MIN_QUESTIONS_PER_UNIT);
         
-        // Si no hay suficientes preguntas NUEVAS, completar con las ya jugadas de ESA UNIDAD
         const remainingNeededInUnit = MIN_QUESTIONS_PER_UNIT - questionsForThisUnit.length;
         if (remainingNeededInUnit > 0) {
             let availableOldInUnit = unitSpecificQuestions.filter(q => tempLastGameQuestionIds.includes(q.id) && !questionsForThisUnit.find(sq => sq.id === q.id));
             shuffleArray(availableOldInUnit);
             questionsForThisUnit = questionsForThisUnit.concat(availableOldInUnit.slice(0, remainingNeededInUnit));
         }
-        selectedQuestions = selectedQuestions.concat(questionsForThisUnit);
+         questionsForThisUnit.forEach(q => { // Evitar duplicados al añadir
+            if (!selectedQuestions.find(sq => sq.id === q.id)) {
+                selectedQuestions.push(q);
+            }
+        });
     }
     
-    // 2. Completar aleatoriamente hasta QUESTIONS_PER_GAME
     let questionsToComplete = QUESTIONS_PER_GAME - selectedQuestions.length;
 
     if (questionsToComplete > 0) {
         let remainingPool = allQuestions.filter(q => !selectedQuestions.find(sq => sq.id === q.id));
         
-        // Priorizar preguntas que no estuvieron en la última partida Y no fueron seleccionadas para garantía de unidad
         let newRemainingPool = remainingPool.filter(q => !tempLastGameQuestionIds.includes(q.id));
         shuffleArray(newRemainingPool);
         
         const takeFromNew = Math.min(questionsToComplete, newRemainingPool.length);
-        selectedQuestions = selectedQuestions.concat(newRemainingPool.slice(0, takeFromNew));
-        questionsToComplete -= takeFromNew;
+        newRemainingPool.slice(0, takeFromNew).forEach(q => { // Evitar duplicados
+             if (!selectedQuestions.find(sq => sq.id === q.id)) {
+                selectedQuestions.push(q);
+            }
+        });
+        questionsToComplete = QUESTIONS_PER_GAME - selectedQuestions.length; // Recalcular
 
         if (questionsToComplete > 0) {
-            // Si aún faltan, usar del pool restante (que incluye las de la partida anterior no seleccionadas para garantía)
             let oldRemainingPool = remainingPool.filter(q => tempLastGameQuestionIds.includes(q.id) && !selectedQuestions.find(sq => sq.id === q.id));
             shuffleArray(oldRemainingPool);
-            selectedQuestions = selectedQuestions.concat(oldRemainingPool.slice(0, questionsToComplete));
+             oldRemainingPool.slice(0, questionsToComplete).forEach(q => { // Evitar duplicados
+                 if (!selectedQuestions.find(sq => sq.id === q.id)) {
+                    selectedQuestions.push(q);
+                }
+            });
         }
     }
     
-    // Si después de todo no se llega a QUESTIONS_PER_GAME (porque el banco total es pequeño o por la lógica de selección)
-    // pero se tiene el mínimo para empezar, se juega con las que haya.
-    if (selectedQuestions.length < MIN_TOTAL_QUESTIONS_TO_START && selectedQuestions.length > 0) { // Ajuste para permitir jugar si hay menos de 40 pero más que el mínimo absoluto
-        errorMessageStart.textContent = `Error: No se pudieron seleccionar suficientes preguntas variadas para una partida completa de ${QUESTIONS_PER_GAME} (solo ${selectedQuestions.length} seleccionadas). Se necesitan al menos ${MIN_TOTAL_QUESTIONS_TO_START} para jugar.`;
+    if (selectedQuestions.length < MIN_TOTAL_QUESTIONS_TO_START && selectedQuestions.length > 0) { 
+        if(errorMessageStart) errorMessageStart.textContent = `Error: No se pudieron seleccionar suficientes preguntas variadas para una partida completa de ${QUESTIONS_PER_GAME} (solo ${selectedQuestions.length} seleccionadas). Se necesitan al menos ${MIN_TOTAL_QUESTIONS_TO_START} para jugar.`;
         if(startGameBtn) startGameBtn.disabled = true;
         console.error("Insuficientes preguntas seleccionadas para la partida.");
         return [];
@@ -178,13 +190,11 @@ function selectGameQuestions() {
          console.warn(`Se seleccionaron ${selectedQuestions.length} preguntas, menos que las ${QUESTIONS_PER_GAME} deseadas, pero suficientes para jugar.`);
     }
     
-    // 3. Mezcla Final
     shuffleArray(selectedQuestions);
     
-    // Asegurar que no exceda el límite de QUESTIONS_PER_GAME
     currentQuestions = selectedQuestions.slice(0, QUESTIONS_PER_GAME); 
     
-    lastGameQuestionIds = currentQuestions.map(q => q.id); // Actualizar con las preguntas de la partida actual
+    lastGameQuestionIds = currentQuestions.map(q => q.id); 
 
     if(errorMessageStart) errorMessageStart.textContent = ""; 
     if(startGameBtn) startGameBtn.disabled = false;
@@ -195,22 +205,26 @@ function selectGameQuestions() {
 // --- LÓGICA DE VISUALIZACIÓN Y JUEGO ---
 
 function displayQuestion() {
-    if (currentQuestionIndex >= currentQuestions.length) {
+    if (!gameScreen || currentQuestionIndex >= currentQuestions.length) { // Añadida comprobación de gameScreen
         endGame();
         return;
     }
 
     const question = currentQuestions[currentQuestionIndex];
+    if (!questionTextElem || !questionCounter || !optionsContainer || !feedbackContainer || !nextQuestionBtn) { // Comprobaciones de elementos
+        console.error("Faltan elementos del DOM para mostrar la pregunta.");
+        return;
+    }
+
     questionTextElem.textContent = question.questionText;
     questionCounter.textContent = `Pregunta ${currentQuestionIndex + 1} / ${currentQuestions.length}`;
     
-    optionsContainer.innerHTML = ''; // Limpiar opciones anteriores
+    optionsContainer.innerHTML = ''; 
     question.options.forEach((option, index) => {
         const button = document.createElement('button');
-        // Aplicar clases para el estilo de tarjeta
-        button.className = 'option-btn bg-white p-4 rounded-lg shadow-md text-slate-700 hover:bg-slate-100 focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all duration-150 ease-in-out w-full text-left border border-slate-300 hover:border-sky-400'; // Clases base de Tailwind para la tarjeta
+        button.className = 'option-btn bg-white p-4 rounded-lg shadow-md text-slate-700 hover:bg-slate-100 focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all duration-150 ease-in-out w-full text-left border border-slate-300 hover:border-sky-400';
         button.textContent = option;
-        button.dataset.index = index;
+        button.dataset.index = index; // Asegurar que el índice se guarda como string
         button.addEventListener('click', handleAnswer);
         optionsContainer.appendChild(button);
     });
@@ -220,13 +234,22 @@ function displayQuestion() {
 }
 
 function handleAnswer(event) {
-    const selectedOptionButton = event.target;
+    const selectedOptionButton = event.target.closest('.option-btn'); // Asegurar que se obtiene el botón
+    if (!selectedOptionButton) return;
+
     const selectedAnswerIndex = parseInt(selectedOptionButton.dataset.index);
     const question = currentQuestions[currentQuestionIndex];
+
+    if (!question || typeof question.correctAnswerIndex === 'undefined') { // Comprobación de pregunta
+        console.error("Error: Pregunta actual o respuesta correcta no definida.", question);
+        return;
+    }
 
     // Deshabilitar todos los botones de opción
     Array.from(optionsContainer.children).forEach(btn => {
         btn.disabled = true;
+        // Quitar clases de hover para que no interfieran con los colores de feedback
+        btn.classList.remove('hover:bg-slate-100', 'hover:border-sky-400');
         btn.classList.add('disabled'); 
     });
 
@@ -234,14 +257,19 @@ function handleAnswer(event) {
     
     if (selectedAnswerIndex === question.correctAnswerIndex) {
         score++;
-        selectedOptionButton.classList.add('correct');
+        selectedOptionButton.classList.remove('bg-white', 'border-slate-300', 'text-slate-700'); // Quitar clases base
+        selectedOptionButton.classList.add('correct'); // Aplicar clase de CSS para verde
         feedbackTextElem.textContent = "¡Respuesta Correcta!";
         feedbackContainer.classList.add('correct');
     } else {
         mistakes++;
-        selectedOptionButton.classList.add('incorrect');
-        if (optionsContainer.children[question.correctAnswerIndex]) {
-            optionsContainer.children[question.correctAnswerIndex].classList.add('correct');
+        selectedOptionButton.classList.remove('bg-white', 'border-slate-300', 'text-slate-700'); // Quitar clases base
+        selectedOptionButton.classList.add('incorrect'); // Aplicar clase de CSS para rojo
+        
+        const correctButton = optionsContainer.children[question.correctAnswerIndex];
+        if (correctButton) {
+            correctButton.classList.remove('bg-white', 'border-slate-300', 'text-slate-700'); // Quitar clases base
+            correctButton.classList.add('correct'); // Aplicar clase de CSS para verde
         }
         feedbackTextElem.textContent = "Respuesta Incorrecta.";
         feedbackContainer.classList.add('incorrect');
@@ -265,13 +293,10 @@ function showNextQuestion() {
 // --- LÓGICA DE INICIO Y FIN DE JUEGO ---
 
 function startGame() {
-    // loadAllQuestions() ya se llamó en DOMContentLoaded
-    
-    currentQuestions = selectGameQuestions(); // selectGameQuestions ahora actualiza currentQuestions directamente
+    currentQuestions = selectGameQuestions(); 
 
     if (currentQuestions.length === 0) {
         console.error("No se pudo iniciar el juego porque no se seleccionaron preguntas.");
-        // El mensaje de error ya lo maneja selectGameQuestions
         return; 
     }
     
@@ -279,6 +304,10 @@ function startGame() {
     score = 0;
     mistakes = 0;
     
+    if (!scoreCounter || !startScreen || !endScreen || !gameScreen) { // Comprobación de elementos
+        console.error("Faltan elementos del DOM para iniciar el juego.");
+        return;
+    }
     scoreCounter.textContent = `Aciertos: 0 | Fallos: 0`;
     startScreen.classList.add('hidden');
     endScreen.classList.add('hidden');
@@ -288,6 +317,10 @@ function startGame() {
 }
 
 function endGame() {
+    if (!gameScreen || !endScreen || !document.getElementById('final-score') || !document.getElementById('final-mistakes')) { // Comprobación
+        console.error("Faltan elementos del DOM para finalizar el juego.");
+        return;
+    }
     gameScreen.classList.add('hidden');
     endScreen.classList.remove('hidden');
     document.getElementById('final-score').textContent = `Aciertos: ${score}`;
@@ -295,9 +328,6 @@ function endGame() {
 }
 
 function playAgain() {
-    // lastGameQuestionIds ya fue actualizado al final de selectGameQuestions
-    // con las preguntas de la partida que acaba de terminar.
-    // startGame re-seleccionará preguntas, intentando no repetir de ese último set.
     startGame(); 
 }
 
@@ -313,19 +343,16 @@ function shuffleArray(array) {
 document.addEventListener('DOMContentLoaded', () => {
     assignDOMelements();
     
-    loadAllQuestions(); // Cargar todas las preguntas al inicio
+    loadAllQuestions(); 
     
-    // Intentar seleccionar preguntas para la validación inicial y mostrar errores si es necesario
     const initialCheckQuestions = selectGameQuestions(); 
     if (initialCheckQuestions.length === 0 && allQuestions.length > 0) {
-        // Si hay preguntas cargadas pero no se cumplen los criterios de selección
-        // el mensaje de error ya debería estar visible desde selectGameQuestions
         if(startGameBtn) startGameBtn.disabled = true;
     } else if (allQuestions.length === 0) {
          if(errorMessageStart) errorMessageStart.textContent = "No se han podido cargar los bancos de preguntas. Revisa la consola para más detalles.";
          if(startGameBtn) startGameBtn.disabled = true;
     } else {
-        if(startGameBtn) startGameBtn.disabled = false; // Habilitar si todo está OK
+        if(startGameBtn) startGameBtn.disabled = false; 
     }
 
     if(startGameBtn) startGameBtn.addEventListener('click', startGame);
