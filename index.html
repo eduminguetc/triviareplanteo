@@ -11,6 +11,7 @@
         body {
             font-family: 'Inter', sans-serif;
         }
+        /* Estilos para la animación de la tarjeta (si se mantiene) */
         .card-flip {
             perspective: 1000px;
         }
@@ -38,47 +39,47 @@
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-slate-900 to-slate-800 text-slate-100 flex flex-col items-center justify-center min-h-screen p-4">
+<body class="bg-slate-200 text-slate-800 flex flex-col items-center justify-center min-h-screen p-4">
 
     <div id="app-container" class="w-full max-w-2xl mx-auto">
 
-        <div id="start-screen" class="text-center p-6 bg-slate-800 shadow-2xl rounded-xl">
-            <h1 class="text-4xl font-bold mb-4 text-sky-400">Trivia: Replanteos de Construcción</h1>
-            <p class="mb-6 text-slate-300">Pon a prueba tus conocimientos sobre los conceptos clave de la materia. Cada partida consta de 40 preguntas.</p>
-            <button id="start-game-btn" class="bg-sky-500 hover:bg-sky-600 text-white font-semibold py-3 px-8 rounded-lg text-lg shadow-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-opacity-75">
+        <div id="start-screen" class="text-center p-6 sm:p-8 bg-white shadow-2xl rounded-xl">
+            <h1 class="text-3xl sm:text-4xl font-bold mb-4 text-sky-700">Trivia: Replanteos de Construcción</h1>
+            <p class="mb-6 text-slate-600 text-base sm:text-lg">Pon a prueba tus conocimientos sobre los conceptos clave de la materia. Cada partida consta de 40 preguntas.</p>
+            <button id="start-game-btn" class="bg-sky-600 hover:bg-sky-700 text-white font-semibold py-3 px-8 rounded-lg text-lg shadow-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-opacity-75">
                 Comenzar Juego
             </button>
-            <div id="error-message-start" class="mt-4 text-red-400 font-semibold"></div>
+            <div id="error-message-start" class="mt-4 text-red-600 font-semibold"></div>
         </div>
 
-        <div id="game-screen" class="hidden p-6 bg-slate-800 shadow-2xl rounded-xl">
-            <div class="flex justify-between items-center mb-6">
-                <div id="question-counter" class="text-lg font-semibold text-sky-400">Pregunta 1 / 40</div>
-                <div id="score-counter" class="text-lg font-semibold text-slate-300">Aciertos: 0 | Fallos: 0</div>
+        <div id="game-screen" class="hidden p-6 sm:p-8 bg-slate-50 shadow-2xl rounded-xl">
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-2 sm:gap-0">
+                <div id="question-counter" class="text-lg font-semibold text-sky-700">Pregunta 1 / 40</div>
+                <div id="score-counter" class="text-lg font-semibold text-slate-600">Aciertos: 0 | Fallos: 0</div>
             </div>
 
-            <div id="question-card" class="bg-slate-700 p-6 rounded-lg shadow-xl mb-6 min-h-[150px] flex flex-col justify-center">
-                <p id="question-text" class="text-xl text-slate-100"></p>
+            <div id="question-card" class="bg-white p-6 rounded-xl shadow-lg mb-6 min-h-[120px] sm:min-h-[150px] flex flex-col justify-center">
+                <p id="question-text" class="text-xl sm:text-2xl text-slate-800"></p>
             </div>
 
             <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 </div>
             
-            <div id="feedback-container" class="hidden mt-4 p-4 rounded-lg min-h-[100px]">
-                <p id="feedback-text" class="text-lg font-semibold mb-2"></p>
-                <p id="explanation-text" class="text-slate-300"></p>
+            <div id="feedback-container" class="hidden mt-4 p-4 rounded-lg min-h-[100px] text-base sm:text-lg">
+                <p id="feedback-text" class="font-semibold mb-2"></p>
+                <p id="explanation-text" class="text-slate-700"></p>
             </div>
 
-            <button id="next-question-btn" class="hidden mt-6 w-full bg-sky-500 hover:bg-sky-600 text-white font-semibold py-3 px-6 rounded-lg text-lg shadow-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-opacity-75">
+            <button id="next-question-btn" class="hidden mt-6 w-full bg-sky-600 hover:bg-sky-700 text-white font-semibold py-3 px-6 rounded-lg text-lg shadow-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-opacity-75">
                 Siguiente Pregunta
             </button>
         </div>
 
-        <div id="end-screen" class="hidden text-center p-6 bg-slate-800 shadow-2xl rounded-xl">
-            <h2 class="text-3xl font-bold mb-4 text-sky-400">¡Partida Finalizada!</h2>
-            <p id="final-score" class="text-xl mb-2 text-slate-300">Aciertos: 0</p>
-            <p id="final-mistakes" class="text-xl mb-6 text-slate-300">Fallos: 0</p>
-            <button id="play-again-btn" class="bg-sky-500 hover:bg-sky-600 text-white font-semibold py-3 px-8 rounded-lg text-lg shadow-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-opacity-75">
+        <div id="end-screen" class="hidden text-center p-6 sm:p-8 bg-white shadow-2xl rounded-xl">
+            <h2 class="text-3xl sm:text-4xl font-bold mb-4 text-sky-700">¡Partida Finalizada!</h2>
+            <p id="final-score" class="text-xl sm:text-2xl mb-2 text-slate-700">Aciertos: 0</p>
+            <p id="final-mistakes" class="text-xl sm:text-2xl mb-6 text-slate-700">Fallos: 0</p>
+            <button id="play-again-btn" class="bg-sky-600 hover:bg-sky-700 text-white font-semibold py-3 px-8 rounded-lg text-lg shadow-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-opacity-75">
                 Jugar de Nuevo
             </button>
         </div>
