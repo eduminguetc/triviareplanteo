@@ -207,7 +207,8 @@ function displayQuestion() {
     optionsContainer.innerHTML = ''; // Limpiar opciones anteriores
     question.options.forEach((option, index) => {
         const button = document.createElement('button');
-        button.classList.add('option-btn'); // Tailwind se aplica desde CSS
+        // Aplicar clases para el estilo de tarjeta
+        button.className = 'option-btn bg-white p-4 rounded-lg shadow-md text-slate-700 hover:bg-slate-100 focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all duration-150 ease-in-out w-full text-left border border-slate-300 hover:border-sky-400'; // Clases base de Tailwind para la tarjeta
         button.textContent = option;
         button.dataset.index = index;
         button.addEventListener('click', handleAnswer);
