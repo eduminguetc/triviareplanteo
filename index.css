@@ -4,46 +4,44 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
-/* Estilo base para los botones de opción (tarjetas) 
-   Las clases principales de Tailwind (bg, shadow, padding, rounded) 
-   se añadirán dinámicamente en index.js al crear los botones.
-   Aquí definimos principalmente los estados.
-*/
 .option-btn {
-    /* Clases base que se añadirán en JS: 
-       'bg-white', 'p-4', 'rounded-lg', 'shadow-md', 
-       'text-slate-700', 'hover:bg-slate-100', 'focus:ring-sky-500',
-       'transition-all', 'duration-150', 'ease-in-out', 
-       'w-full', 'text-left', 'border', 'border-slate-300', 'hover:border-sky-400'
-    */
-    @apply cursor-pointer; /* Asegurar que se vea como clickeable */
+    @apply bg-white p-4 rounded-lg shadow-md text-slate-700;
+    @apply transition-all duration-150 ease-in-out;
+    @apply w-full text-left;
+    @apply border border-slate-300;
+    @apply cursor-pointer;
+    @apply hover:bg-slate-100 hover:border-sky-400; /* Base hover */
+    @apply focus:ring-2 focus:ring-sky-500 focus:outline-none;
 }
 
 .option-btn.correct {
-    @apply bg-green-500 hover:bg-green-600 text-white border-green-600;
+    @apply bg-green-500 text-white border-green-600; /* Estilo principal para correcto */
+    @apply hover:bg-green-600 hover:border-green-700; /* Hover específico para correcto */
 }
 .option-btn.incorrect {
-    @apply bg-red-500 hover:bg-red-600 text-white border-red-600;
+    @apply bg-red-500 text-white border-red-600; /* Estilo principal para incorrecto */
+    @apply hover:bg-red-600 hover:border-red-700; /* Hover específico para incorrecto */
 }
 
 .option-btn.disabled {
     @apply opacity-70 cursor-not-allowed;
-    /* Si el botón es solo disabled y no correct/incorrect, 
-       queremos que el hover:bg-white (o el color base) se mantenga sin cambios por hover.
-       Las clases base de JS ('hover:bg-slate-100') podrían interferir,
-       así que podemos ser más específicos aquí si es necesario, o manejarlo en JS.
-       Por ahora, Tailwind normalmente maneja bien la especificidad.
-       Si el botón base es 'bg-white', el hover:bg-white aquí no hace mucho,
-       pero si el botón base tuviera otro color, esto sería más relevante.
-    */
 }
-.option-btn.disabled.correct { /* Mantener color si está deshabilitado pero fue correcto */
-    @apply bg-green-500 text-white border-green-600 opacity-80 hover:bg-green-500;
-    /* Aseguramos que el hover no lo cambie a un color no deseado */
+
+/* Cuando un botón está deshabilitado Y es correcto */
+.option-btn.disabled.correct {
+    @apply bg-green-500 text-white border-green-600 opacity-80; /* Mantiene el color verde */
+    @apply hover:bg-green-500 hover:border-green-600; /* Sin cambio en hover */
 }
-.option-btn.disabled.incorrect { /* Mantener color si está deshabilitado pero fue incorrecto */
-     @apply bg-red-500 text-white border-red-600 opacity-80 hover:bg-red-500;
-    /* Aseguramos que el hover no lo cambie a un color no deseado */
+
+/* Cuando un botón está deshabilitado Y es incorrecto */
+.option-btn.disabled.incorrect {
+     @apply bg-red-500 text-white border-red-600 opacity-80; /* Mantiene el color rojo */
+    @apply hover:bg-red-500 hover:border-red-600; /* Sin cambio en hover */
+}
+
+/* Cuando un botón está deshabilitado PERO NO es ni correcto ni incorrecto (los otros no seleccionados) */
+.option-btn.disabled:not(.correct):not(.incorrect) {
+    @apply hover:bg-white hover:border-slate-300; /* Mantiene el estilo base en hover */
 }
 
 
