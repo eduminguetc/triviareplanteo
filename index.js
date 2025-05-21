@@ -115,11 +115,10 @@ function selectGameQuestions() {
     let selectedQuestions = [];
     let tempLastGameQuestionIds = [...lastGameQuestionIds]; 
 
-    const unitNumbers = Object.keys(questionsByUnit).map(Number).filter(num => questionsByUnit[num] && questionsByUnit[num].length > 0); // Filtrar unidades sin preguntas
+    const unitNumbers = Object.keys(questionsByUnit).map(Number).filter(num => questionsByUnit[num] && questionsByUnit[num].length > 0); 
     
     for (const unitNum of unitNumbers) {
         let unitSpecificQuestions = questionsByUnit[unitNum];
-        // No es necesario el 'if (!unitSpecificQuestions || unitSpecificQuestions.length === 0)' aquí debido al filtro anterior
         
         if (unitSpecificQuestions.length < MIN_QUESTIONS_PER_UNIT) {
             console.warn(`La unidad ${unitNum} tiene menos de ${MIN_QUESTIONS_PER_UNIT} preguntas. Se usarán todas las disponibles de esta unidad.`);
@@ -168,7 +167,7 @@ function selectGameQuestions() {
         questionsToComplete = QUESTIONS_PER_GAME - selectedQuestions.length;
 
         if (questionsToComplete > 0) {
-            let oldRemainingPool = remainingPool.filter(q => tempLastGameQuestionIds.includes(q.id) && !selectedQuestions.find(sq => sq.id === q.id)); // Asegurar que no se seleccionen de nuevo las ya seleccionadas
+            let oldRemainingPool = remainingPool.filter(q => tempLastGameQuestionIds.includes(q.id) && !selectedQuestions.find(sq => sq.id === q.id)); 
             shuffleArray(oldRemainingPool);
              oldRemainingPool.slice(0, questionsToComplete).forEach(q => { 
                  if (!selectedQuestions.find(sq => sq.id === q.id)) {
@@ -219,10 +218,9 @@ function displayQuestion() {
     optionsContainer.innerHTML = ''; 
     question.options.forEach((option, index) => {
         const button = document.createElement('button');
-        // Se aplica solo la clase base. El CSS se encargará del resto.
         button.classList.add('option-btn'); 
         button.textContent = option;
-        button.dataset.index = String(index); // Asegurar que el índice se guarda como string
+        button.dataset.index = String(index); 
         button.addEventListener('click', handleAnswer);
         optionsContainer.appendChild(button);
     });
@@ -233,37 +231,53 @@ function displayQuestion() {
 
 function handleAnswer(event) {
     const selectedOptionButton = event.target.closest('.option-btn'); 
-    if (!selectedOptionButton) return;
+    if (!selectedOptionButton) {
+        console.error("DEBUG: Botón seleccionado no encontrado en el evento.");
+        return;
+    }
+
+    console.log("DEBUG: Botón clickeado:", selectedOptionButton);
+    console.log("DEBUG: Clases ANTES de modificar:", selectedOptionButton.className);
 
     const selectedAnswerIndex = parseInt(selectedOptionButton.dataset.index);
     const question = currentQuestions[currentQuestionIndex];
 
     if (!question || typeof question.correctAnswerIndex === 'undefined') { 
-        console.error("Error: Pregunta actual o respuesta correcta no definida.", question);
+        console.error("DEBUG: Error - Pregunta actual o respuesta correcta no definida.", question);
         return;
     }
 
+    // Deshabilitar todos los botones y limpiar clases de hover
     Array.from(optionsContainer.children).forEach(btn => {
         btn.disabled = true;
-        // Quitar clases de hover base para que no interfieran con los colores de feedback
         btn.classList.remove('hover:bg-slate-100', 'hover:border-sky-400'); 
         btn.classList.add('disabled'); 
     });
 
-    feedbackContainer.classList.remove('hidden', 'correct', 'incorrect'); 
+    // Limpiar clases de feedback visual previas de todos los botones
+    Array.from(optionsContainer.children).forEach(btn => {
+        btn.classList.remove('correct', 'incorrect');
+    });
+    
+    if (feedbackContainer) feedbackContainer.classList.remove('hidden', 'correct', 'incorrect'); 
     
     if (selectedAnswerIndex === question.correctAnswerIndex) {
         score++;
         selectedOptionButton.classList.add('correct'); 
+        console.log("DEBUG: Respuesta CORRECTA. Clases DESPUÉS:", selectedOptionButton.className);
         if (feedbackTextElem) feedbackTextElem.textContent = "¡Respuesta Correcta!";
         if (feedbackContainer) feedbackContainer.classList.add('correct');
     } else {
         mistakes++;
         selectedOptionButton.classList.add('incorrect'); 
+        console.log("DEBUG: Respuesta INCORRECTA (seleccionada). Clases DESPUÉS:", selectedOptionButton.className);
         
         const correctButton = optionsContainer.children[question.correctAnswerIndex];
         if (correctButton) {
             correctButton.classList.add('correct'); 
+            console.log("DEBUG: Botón que ERA correcto. Clases DESPUÉS:", correctButton.className);
+        } else {
+            console.error("DEBUG: No se encontró el botón correcto para resaltar en verde.");
         }
         if (feedbackTextElem) feedbackTextElem.textContent = "Respuesta Incorrecta.";
         if (feedbackContainer) feedbackContainer.classList.add('incorrect');
