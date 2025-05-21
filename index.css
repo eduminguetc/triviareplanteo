@@ -4,30 +4,46 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
-/* Estilo para los botones de opción */
+/* Estilo base para los botones de opción (tarjetas) 
+   Las clases principales de Tailwind (bg, shadow, padding, rounded) 
+   se añadirán dinámicamente en index.js al crear los botones.
+   Aquí definimos principalmente los estados.
+*/
 .option-btn {
-    @apply bg-slate-600 hover:bg-slate-500 text-slate-100 font-medium py-3 px-4 rounded-lg transition-all duration-150 ease-in-out w-full text-left;
-    @apply focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-opacity-75;
+    /* Clases base que se añadirán en JS: 
+       'bg-white', 'p-4', 'rounded-lg', 'shadow-md', 
+       'text-slate-700', 'hover:bg-slate-100', 'focus:ring-sky-500',
+       'transition-all', 'duration-150', 'ease-in-out', 
+       'w-full', 'text-left', 'border', 'border-slate-300', 'hover:border-sky-400'
+    */
+    @apply cursor-pointer; /* Asegurar que se vea como clickeable */
 }
 
 .option-btn.correct {
-    @apply bg-green-500 hover:bg-green-600 text-white;
-    /* Evitar que el hover cambie el color de fondo después de seleccionar */
+    @apply bg-green-500 hover:bg-green-600 text-white border-green-600;
+    /* Evitar que el hover cambie el color de fondo después de seleccionar si es necesario,
+       pero el hover:bg-green-600 ya lo oscurece un poco, lo cual está bien. */
 }
 .option-btn.incorrect {
-    @apply bg-red-500 hover:bg-red-600 text-white;
-     /* Evitar que el hover cambie el color de fondo después de seleccionar */
+    @apply bg-red-500 hover:bg-red-600 text-white border-red-600;
 }
 
 .option-btn.disabled {
-    @apply opacity-70 cursor-not-allowed;
+    @apply opacity-70 cursor-not-allowed hover:bg-white; /* Evitar cambio de hover cuando está deshabilitado y es blanco */
 }
+.option-btn.disabled.correct { /* Mantener color si está deshabilitado pero fue correcto */
+    @apply bg-green-500 opacity-80 hover:bg-green-500;
+}
+.option-btn.disabled.incorrect { /* Mantener color si está deshabilitado pero fue incorrecto */
+     @apply bg-red-500 opacity-80 hover:bg-red-500;
+}
+
 
 /* Estilo para el contenedor de feedback */
 #feedback-container.correct {
-    @apply bg-green-700 bg-opacity-30 border border-green-500 text-green-300;
+    @apply bg-green-100 border border-green-400 text-green-700;
 }
 
 #feedback-container.incorrect {
-    @apply bg-red-700 bg-opacity-30 border border-red-500 text-red-300;
+    @apply bg-red-100 border border-red-400 text-red-700;
 }
